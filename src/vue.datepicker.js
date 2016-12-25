@@ -16,52 +16,55 @@
 }(function(Vue) {
     Vue.component('mz-datepicker', {
         template: '<div class="mz-datepicker" :style="{width:width+\'px\'}">' +
-            '<input :value="value" readonly :disabled="disabled" :class="{focus:show}" @click="click" @mousedown="$event.preventDefault()"/><a v-if="clearable&&value" @click.stop="clear"></a><i @click="click"></i>' +
-            '<div class="mz-datepicker-popup" :class="{\'mz-datepicker-popup-left\':left}" v-if="show" transition="mz-datepicker-popup" tabindex="-1" @blur="show = false" @mousedown="$event.preventDefault()" @keyup.up="changeMonth(-1,1)" @keyup.down="changeMonth(1,1)" @keyup.left="changeYear(-1,1)" @keyup.right="changeYear(1,1)" v-el:popup>' +
-            '<div class="mz-calendar-top" v-if="range&&!en">' +
-                '<template v-for="item in ranges">' +
-                    '<i v-if="$index"></i><a v-text="item.name" @click="selectRange(item)"></a>' +
-                '</template>' +
-            '</div>' +
-            '<div :class="{\'mz-calendar-range\':range}">' +
-                '<template v-for="no in count">' +
-                    '<div class="mz-calendar">' +
-                        '<div class="mz-calendar-header">' +
-                            '<a class="mz-calendar-prev-year" :title="prevYearTitle" @click="changeYear(-1,no+1)">«</a>' +
-                            '<a class="mz-calendar-prev-month" :title="prevMonthTitle" @click="changeMonth(-1,no+1)">‹</a>' +
-                            '<a v-if="!en" class="mz-calendar-year-select" :title="selectYearTitle" @click="showYear(no+1)">{{this[\'now\'+(no+1)].getFullYear()+(en?"":"年")}}</a>' +
-                            '<a v-if="!en" class="mz-calendar-month-select" :title="selectMonthTitle" @click="showMonth(no+1)">{{months[this[\'now\'+(no+1)].getMonth()]}}</a>' +
-                            '<a v-if="en" class="mz-calendar-month-select" :title="selectMonthTitle" @click="showMonth(no+1)">{{months[this[\'now\'+(no+1)].getMonth()]}}</a>' +
-                            '<a v-if="en" class="mz-calendar-year-select" :title="selectYearTitle" @click="showYear(no+1)">{{this[\'now\'+(no+1)].getFullYear()+(en?"":"年")}}</a>' +
-                            '<a class="mz-calendar-next-month" :title="nextMonthTitle" @click="changeMonth(1,no+1)">›</a>' +
-                            '<a class="mz-calendar-next-year" :title="nextYearTitle" @click="changeYear(1,no+1)">»</a>' +
-                        '</div>' +
-                        '<table cellspacing="0" cellpadding="0">' +
-                        '<tr><th v-for="day in days" v-text="day"></th></tr>' +
-                        '<tr v-if="this[\'date\'+(no+1)]" v-for="i in 6"><td v-for="j in 7" v-text="this[\'date\'+(no+1)][i * 7 + j].text" :title="this[\'date\'+(no+1)][i * 7 + j].title" :class="this[\'date\'+(no+1)][i * 7 + j].status" @click="select(this[\'date\'+(no+1)][i * 7 + j], no+1)"></td></tr>' +
-                        '</table>' +
-                        '<div class="mz-calendar-year-panel" transition="mz-calendar-panel" v-if="this[\'showYear\'+(no+1)]"><a class="mz-calendar-year-panel-prev" @click="changeYearRange(no+1,-1)"></a><a class="mz-calendar-year-panel-year" v-for="item in this[\'years\'+(no+1)]" :class="item.status" @click="selectYear(item,no+1)">{{item.year+(en?"":"年")}}</a><a class="mz-calendar-year-panel-next" @click="changeYearRange(no+1,1)"></a></div>' +
-                        '<div class="mz-calendar-month-panel" transition="mz-calendar-panel" v-if="this[\'showMonth\'+(no+1)]"><a v-for="item in this[\'months\'+(no+1)]" class="mz-calendar-month-panel-month" :class="item.status" @click="selectMonth(item,no+1)">{{months[item.month-1].substr(0,3)}}</a></div>' +
+            '<input :name="name" :value="value" readonly :disabled="disabled" :class="{focus:show}" @click="click" @mousedown="$event.preventDefault()"/><a v-if="clearable&&value" @click.stop="clear"></a><i @click="click"></i>' +
+            '<transition name="mz-datepicker-popup">'+
+                '<div ref="popup" class="mz-datepicker-popup" :class="{\'mz-datepicker-popup-left\':left}" v-show="show" tabindex="-1" @blur="show = false" @mousedown="$event.preventDefault()" @keyup.up="changeMonth(-1,1)" @keyup.down="changeMonth(1,1)" @keyup.left="changeYear(-1,1)" @keyup.right="changeYear(1,1)">' +
+                     '<div class="mz-calendar-top" v-if="range&&!en">' +
+                        '<template v-for="item in ranges">' +
+                            '<i v-if="$index"></i><a v-text="item.name" @click="selectRange(item)"></a>' +
+                        '</template>' +
                     '</div>' +
-                    '<div class="mz-calendar-separator" v-if="range&&no===0"><span>{{toTitle}}</span></div>' +
-                '</template>' +
-            '</div>' +
-            '<div class="mz-calendar-bottom" v-if="range"><a class="mz-calendar-btn ok" @click="ok">{{okTitle}}</a></div>' +
-            '</div>' +
-            '</div>',
+                    '<div :class="{\'mz-calendar-range\':range}">' +
+                        '<template v-for="no in count">' +
+                            '<div class="mz-calendar">' +
+                                '<div class="mz-calendar-header">' +
+                                    '<a class="mz-calendar-prev-year" :title="prevYearTitle" @click="changeYear(-1,no)">«</a>' +
+                                    '<a class="mz-calendar-prev-month" :title="prevMonthTitle" @click="changeMonth(-1,no)">‹</a>' +
+                                    '<a v-if="!en" class="mz-calendar-year-select" :title="selectYearTitle" @click="showYear(no)">{{_self[\'now\'+no].getFullYear()+"年"}}</a>' +
+                                    '<a v-if="!en" class="mz-calendar-month-select" :title="selectMonthTitle" @click="showMonth(no)">{{months[_self[\'now\'+no].getMonth()]}}</a>' +
+                                    '<a v-if="en" class="mz-calendar-month-select" :title="selectMonthTitle" @click="showMonth(no)">{{months[_self[\'now\'+no].getMonth()]}}</a>' +
+                                    '<a v-if="en" class="mz-calendar-year-select" :title="selectYearTitle" @click="showYear(no)">{{_self[\'now\'+no].getFullYear()}}</a>' +
+                                    '<a class="mz-calendar-next-month" :title="nextMonthTitle" @click="changeMonth(1,no)">›</a>' +
+                                    '<a class="mz-calendar-next-year" :title="nextYearTitle" @click="changeYear(1,no)">»</a>' +
+                                '</div>' +
+                                '<table cellspacing="0" cellpadding="0">' +
+                                    '<tr><th v-for="day in days" v-text="day"></th></tr>' +
+                                    '<tr v-if="_self[\'date\'+no]" v-for="i in [0,1,2,3,4,5]"><td v-for="j in [0,1,2,3,4,5,6]" v-text="_self[\'date\'+no][i * 7 + j].text" :title="_self[\'date\'+no][i * 7 + j].title" :class="_self[\'date\'+no][i * 7 + j].status" @click="select(_self[\'date\'+no][i * 7 + j], no)"></td></tr>' +
+                                '</table>' +
+                                '<transition name="mz-calendar-panel">'+
+                                    '<div class="mz-calendar-year-panel" v-if="_self[\'showYear\'+no]"><a class="mz-calendar-year-panel-prev" @click="changeYearRange(no,-1)"></a><a class="mz-calendar-year-panel-year" v-for="item in _self[\'years\'+no]" :class="item.status" @click="selectYear(item,no)">{{item.year+(en?"":"年")}}</a><a class="mz-calendar-year-panel-next" @click="changeYearRange(no,1)"></a></div>' +
+                                    '<div class="mz-calendar-month-panel" v-if="_self[\'showMonth\'+no]"><a v-for="item in _self[\'months\'+no]" class="mz-calendar-month-panel-month" :class="item.status" @click="selectMonth(item,no)">{{months[item.month-1].substr(0,3)}}</a></div>' +
+                                '</transition>' +
+                            '</div>' +
+                            '<div class="mz-calendar-separator" v-if="range&&no===0"><span>{{toTitle}}</span></div>' +
+                        '</template>'  +
+                    '</div>' +
+                    '<div class="mz-calendar-bottom" v-if="range"><a class="mz-calendar-btn ok" @click="ok">{{okTitle}}</a></div>' +
+                '</div>' +
+            '</transition>'+
+        '</div>',
         props: {
             //是否显示范围
             range: {
                 type: Boolean,
                 default: false
             },
+            name: {
+                type:String
+            },
             //显示宽度
             width: {
                 default: 214
-            },
-            //输入的时间
-            time: {
-                twoWay: true
             },
             //输入的开始时间
             startTime: {
@@ -106,7 +109,21 @@
             onConfirm: Function
         },
         data: function() {
+            var parse= function(time, isLast) {
+                if (time) {
+                    var tmpTime = new Date(time);
+                    if (isLast === undefined) {
+                        return tmpTime;
+                    } else if (isLast) {
+                        return new Date(tmpTime.getFullYear(), tmpTime.getMonth(), tmpTime.getDate(), 23, 59, 59, 999);
+                    } else {
+                        return new Date(tmpTime.getFullYear(), tmpTime.getMonth(), tmpTime.getDate());
+                    }
+                }
+                return null;
+            }
             return {
+                time: null,
                 show: false,
                 showYear1: false,
                 showYear2: false,
@@ -130,10 +147,11 @@
                 months2: [],
                 date1: null,
                 date2: null,
-                time1: this.parse(this.startTime, false) || this.parse(this.time, false),
-                time2: this.parse(this.endTime, true),
-                now1: this.parse(new Date(), false),
-                now2: this.parse(new Date(), true),
+                time1: parse(this.startTime, false) || parse(this.time, false),
+                time2: parse(this.endTime, true),
+                now1: parse(new Date(), false),
+                now2: parse(new Date(), true),
+                _self: this,
                 count: this.range ? 2 : 1 //日历数量
             };
         },
@@ -153,7 +171,7 @@
         watch: {
             show: function(val) {
                 this.hidePanel();
-                val && this.$els.popup.focus();
+                val && this.$refs.popup.focus();
             },
             now1: function() {
                 this.updateAll();
@@ -163,6 +181,7 @@
             }
         },
         methods: {
+            hide:function(){this.show = false;},
             //转换输入的时间
             parse: function(time, isLast) {
                 if (time) {
@@ -300,9 +319,9 @@
             //更新时间
             update: function(time, no) {
                 var i, tmpTime, curFirstDay, lastDay, curDay, day, arr = [];
-                time.setDate(0); //切换到上个月最后一天
-                curFirstDay = time.getDay(); //星期几
-                lastDay = time.getDate(); //上个月的最后一天
+                time.setDate(0); //set time to last month and last day
+                curFirstDay = time.getDay(); //get day of the week
+                lastDay = time.getDate(); //get last day of month
                 for (i = curFirstDay; i > 0; i--) {
                     day = lastDay - i + 1;
                     tmpTime = new Date(time.getFullYear(), time.getMonth(), day);
@@ -314,9 +333,9 @@
                         time: tmpTime
                     });
                 }
-                time.setMonth(time.getMonth() + 2, 0); //切换到当前月的最后一天
-                curDay = time.getDate(); //当前月的最后一天
-                time.setDate(1);
+                time.setMonth(time.getMonth() + 2, 0); //set time to actual month and last day
+                curDay = time.getDate(); //get day from last day of the month
+                time.setDate(1);//set time to first day of month
                 for (i = 1; i <= curDay; i++) {
                     tmpTime = new Date(time.getFullYear(), time.getMonth(), i);
                     tmpTime = this.parse(tmpTime, no === 2);
